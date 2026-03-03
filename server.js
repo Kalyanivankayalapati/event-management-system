@@ -3,10 +3,13 @@ const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
 const QRCode = require('qrcode');
+const path = require("path");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+app.use(express.static(path.join(__dirname, "client")));
 
 // ================= DATABASE CONNECTION =================
 const db = mysql.createConnection({
@@ -25,10 +28,7 @@ db.connect(err => {
     }
 });
 
-// ================= TEST ROUTE =================
-app.get('/', (req, res) => {
-    res.send("Event Management Backend Running");
-});
+
 
 // ================= REGISTER USER =================
 app.post('/register', (req, res) => {
