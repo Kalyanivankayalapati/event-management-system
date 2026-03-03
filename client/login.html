@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Campus Event Portal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            height: 100vh;
+        }
+
+        .left {
+            flex: 1;
+            background: url('https://images.unsplash.com/photo-1492684223066-81342ee5ff30') 
+                        no-repeat center center/cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .left h1 {
+            font-size: 40px;
+            text-align: center;
+            background: rgba(0,0,0,0.6);
+            padding: 25px 35px;
+            border-radius: 12px;
+            backdrop-filter: blur(4px);
+        }
+
+        .right {
+            flex: 1;
+            background: linear-gradient(135deg, #eef2ff, #e0f2fe);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-box {
+            background: white;
+            padding: 50px 40px;
+            border-radius: 18px;
+            width: 380px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+            text-align: center;
+        }
+
+        .logo {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(to right, #2563eb, #3b82f6);
+            border-radius: 50%;
+            margin: 0 auto 15px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        h2 {
+            margin-bottom: 25px;
+            color: #1e293b;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            margin: 12px 0;
+            border-radius: 10px;
+            border: 1px solid #d1d5db;
+            font-size: 14px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 2px rgba(37,99,235,0.2);
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(to right, #2563eb, #3b82f6);
+            border: none;
+            color: white;
+            font-size: 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(37,99,235,0.3);
+        }
+
+        .links {
+            margin-top: 18px;
+            font-size: 14px;
+        }
+
+        .links a {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 500;
+            margin: 0 5px;
+        }
+
+        .links a:hover {
+            text-decoration: underline;
+        }
+
+        .error {
+            color: red;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .loading {
+            font-size: 14px;
+            margin-top: 8px;
+            color: #2563eb;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="left">
+    <h1>Welcome to<br>Campus Event Portal</h1>
+</div>
+
+<div class="right">
+    <div class="login-box">
+
+        <div class="logo">EP</div>
+
+        <h2>Login to Continue</h2>
+
+        <input type="email" id="email" placeholder="Enter Email" required />
+        <input type="password" id="password" placeholder="Enter Password" required />
+
+        <button onclick="login()">Login</button>
+
+        <div class="loading" id="loading"></div>
+        <div class="error" id="error"></div>
+
+        <!-- ✅ Added Links -->
+        <div class="links">
+            <a href="register.html">Create Account</a>
+            |
+            <a href="forgot.html">Forgot Password?</a>
+        </div>
+
+    </div>
+</div>
+
+<script>
+
+async function login() {
+
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const errorDiv = document.getElementById("error");
+    const loadingDiv = document.getElementById("loading");
+
+    errorDiv.innerText = "";
+    loadingDiv.innerText = "";
+
+    if (!email || !password) {
+        errorDiv.innerText = "Please fill all fields.";
+        return;
+    }
+
+    loadingDiv.innerText = "Logging in...";
+
+    try {
+
+        const response = await fetch("http://localhost:5000/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+        loadingDiv.innerText = "";
+
+        if (response.ok) {
+
+            localStorage.setItem("user", JSON.stringify(data.user));
+
+            if (data.user.role === "admin") {
+                window.location.href = "admin.html";
+            } else {
+                window.location.href = "dashboard.html";
+            }
+
+        } else {
+            errorDiv.innerText = data.message || "Invalid Email or Password";
+        }
+
+    } catch (error) {
+        loadingDiv.innerText = "";
+        errorDiv.innerText = "Server not reachable. Make sure backend is running.";
+    }
+}
+
+</script>
+
+</body>
+</html>

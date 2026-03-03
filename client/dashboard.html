@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Event Dashboard</title>
+    <style>
+        body { margin:0; font-family:Segoe UI; background:#f1f5f9; }
+        .navbar {
+            background:white;
+            padding:15px 30px;
+            display:flex;
+            justify-content:space-between;
+            box-shadow:0 4px 8px rgba(0,0,0,0.05);
+        }
+        .container { display:flex; }
+        .sidebar {
+            width:220px;
+            background:#1e293b;
+            color:white;
+            padding:20px;
+            height:100vh;
+        }
+        .sidebar button {
+            width:100%;
+            padding:10px;
+            margin:8px 0;
+            background:#334155;
+            border:none;
+            color:white;
+            border-radius:6px;
+            cursor:pointer;
+        }
+        .main { flex:1; padding:30px; }
+        .cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:20px; }
+        .card {
+            background:white;
+            border-radius:12px;
+            box-shadow:0 8px 20px rgba(0,0,0,0.08);
+            padding:20px;
+        }
+        .card button {
+            width:100%;
+            padding:10px;
+            background:#2563eb;
+            color:white;
+            border:none;
+            border-radius:6px;
+            cursor:pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <h2 id="welcome"></h2>
+    <button onclick="logout()">Logout</button>
+</div>
+
+<div class="container">
+
+    <div class="sidebar">
+        <h3>Categories</h3>
+        <button onclick="filterEvents('All')">All Events</button>
+        <button onclick="filterEvents('Technical')">Technical</button>
+        <button onclick="filterEvents('Non-Technical')">Non-Technical</button>
+    </div>
+
+    <div class="main">
+        <div class="cards" id="events"></div>
+    </div>
+
+</div>
+
+<script>
+
+const user = JSON.parse(localStorage.getItem("user"));
+if (!user) window.location.href="login.html";
+
+document.getElementById("welcome").innerText="Welcome, "+user.name;
+
+let allEvents=[];
+
+async function loadEvents(){
+    try{
+        const response=await fetch("http://localhost:5000/events");
+        allEvents=await response.json();
+        displayEvents(allEvents);
+    }catch(err){
+        console.log("Error loading events:",err);
+    }
+}
+
+function formatDate(dateValue){
+    if(!dateValue) return "N/A";
+    if(typeof dateValue === "string" && dateValue.includes("T")){
+        return dateValue.split("T")[0];
+    }
+    return new Date(dateValue).toLocaleDateString();
+}
+
+function displayEvents(events){
+    const eventsDiv=document.getElementById("events");
+    eventsDiv.innerHTML="";
+
+    if(events.length===0){
+        eventsDiv.innerHTML="<p>No events available.</p>";
+        return;
+    }
+
+    events.forEach(event=>{
+        const div=document.createElement("div");
+        div.className="card";
+
+        div.innerHTML=`
+            <h3>${event.title}</h3>
+            <p>${event.description}</p>
+            <p><b>Category:</b> ${event.category}</p>
+            <p><b>Date:</b> ${formatDate(event.date)}</p>
+            <p><b>Location:</b> ${event.location}</p>
+            <button onclick="registerEvent(${event.event_id})">
+                Register
+            </button>
+        `;
+
+        eventsDiv.appendChild(div);
+    });
+}
+
+function filterEvents(category){
+    if(category==="All") displayEvents(allEvents);
+    else displayEvents(allEvents.filter(e=>e.category===category));
+}
+
+
+async function registerEvent(eventId){
+
+    const selectedEvent = allEvents.find(e => e.event_id === eventId);
+
+    const confirmRegister = confirm(
+        `Register for:\n\n${selectedEvent.title}\nDate: ${selectedEvent.date.split("T")[0]}`
+    );
+
+    if(!confirmRegister) return;
+
+    const response = await fetch("http://localhost:5000/register-event",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({user_id:user.id,event_id:eventId})
+    });
+
+    const data = await response.json();
+
+if(!response.ok){
+    alert(data.message);
+    return;
+}
+
+// Save QR data to localStorage
+localStorage.setItem("qrData", JSON.stringify({
+    title: selectedEvent.title,
+    qr: data.qr,
+    qr_value: data.qr_value
+}));
+
+// Redirect to QR page
+window.location.href = "qr.html";
+}
+function logout(){
+    localStorage.removeItem("user");
+    window.location.href="login.html";
+}
+
+loadEvents();
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Your Event QR</title>
+    <style>
+        body{
+            font-family:Arial;
+            text-align:center;
+            background:#f4f6f9;
+            padding-top:80px;
+        }
+
+        .card{
+            background:white;
+            width:400px;
+            margin:auto;
+            padding:40px;
+            border-radius:15px;
+            box-shadow:0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        img{
+            width:300px;
+            margin-top:20px;
+        }
+
+        .code{
+            margin-top:25px;
+            font-weight:bold;
+            font-size:18px;
+            word-break:break-all;
+        }
+
+        button{
+            margin-top:25px;
+            padding:10px 20px;
+            background:#2563eb;
+            color:white;
+            border:none;
+            border-radius:8px;
+            cursor:pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2 id="eventTitle"></h2>
+
+    <img id="qrImage" />
+
+    <div class="code" id="qrCodeValue"></div>
+
+    <button onclick="goBack()">Back to Dashboard</button>
+</div>
+
+<script>
+
+const qrData = JSON.parse(localStorage.getItem("qrData"));
+
+if(!qrData){
+    alert("No QR data found");
+    window.location.href = "dashboard.html";
+}
+
+document.getElementById("eventTitle").innerText = qrData.title;
+document.getElementById("qrImage").src = qrData.qr;
+document.getElementById("qrCodeValue").innerText = "QR Code Value: " + qrData.qr_value;
+
+function goBack(){
+    window.location.href = "dashboard.html";
+}
+
+</script>
+
+</body>
+</html>

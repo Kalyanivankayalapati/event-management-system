@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI';
+            background: #f4f7fb;
+        }
+
+        .navbar {
+            background: linear-gradient(90deg, #2563eb, #1e40af);
+            color: white;
+            padding: 18px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 20px;
+        }
+
+        .layout {
+            display: flex;
+        }
+
+        .sidebar {
+            width: 240px;
+            background: #1e293b;
+            color: white;
+            height: 100vh;
+            padding: 30px 20px;
+        }
+
+        .sidebar button {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            background: #334155;
+            border: none;
+            color: white;
+            cursor: pointer;
+            border-radius: 6px;
+        }
+
+        .sidebar button:hover {
+            background: #475569;
+        }
+
+        .main {
+            flex: 1;
+            padding: 40px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 14px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+        }
+
+        .create-btn {
+            background: #2563eb;
+            color: white;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            width: 100%;
+            cursor: pointer;
+        }
+
+        .create-btn:hover {
+            background: #1e40af;
+        }
+
+        .event-box {
+            background: #eef2ff;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+
+        .event-box button {
+            margin-top: 8px;
+            padding: 6px 10px;
+            border: none;
+            background: #2563eb;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .event-box button:hover {
+            background: #1e40af;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="navbar">
+    Admin Dashboard
+    <button onclick="logout()" 
+        style="background:white;color:#2563eb;padding:8px 15px;border:none;border-radius:6px;">
+        Logout
+    </button>
+</div>
+
+<div class="layout">
+
+    <div class="sidebar">
+    <button onclick="goToScanner()">📷 Attendance Scanner</button>
+    <button onclick="loadEvents()">📊 View Attendance</button>
+</div>
+
+    <div class="main">
+
+        <!-- Create Event -->
+        <div class="card">
+            <h2>Create New Event</h2>
+
+            <input type="text" id="title" placeholder="Event Title">
+            <input type="text" id="description" placeholder="Event Description">
+            <input type="date" id="date">
+            <input type="text" id="location" placeholder="Location">
+
+            <select id="category">
+                <option value="Technical">Technical</option>
+                <option value="Non-Technical">Non-Technical</option>
+            </select>
+
+            <button id="createBtn" class="create-btn">Create Event</button>
+        </div>
+        <div class="card" style="margin-top:40px;">
+    <h2>Create New Admin</h2>
+
+    <input type="text" id="adminName" placeholder="Admin Name">
+    <input type="email" id="adminEmail" placeholder="Admin Email">
+    <input type="password" id="adminPassword" placeholder="Admin Password">
+
+    <button class="create-btn" onclick="createAdmin()">
+        Create Admin
+    </button>
+
+    <div class="success" id="adminMessage"></div>
+</div>
+
+        <!-- Event List -->
+        <div class="card">
+            <h2>Event Attendance Overview</h2>
+            <div id="eventList"></div>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    if (!user || user.role !== "admin") {
+        alert("Access Denied. Admins Only.");
+        window.location.href = "login.html";
+        return;
+    }
+
+    // Create Event
+    document.getElementById("createBtn").addEventListener("click", async function () {
+
+        const title = document.getElementById("title").value.trim();
+        const description = document.getElementById("description").value.trim();
+        const date = document.getElementById("date").value;
+        const location = document.getElementById("location").value.trim();
+        const category = document.getElementById("category").value;
+
+        if (!title || !description || !date || !location) {
+            alert("Please fill all fields.");
+            return;
+        }
+
+        const response = await fetch("http://localhost:5000/create-event", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title, description, date, location, category })
+        });
+
+        if (response.ok) {
+            alert("Event Created Successfully!");
+            loadEvents();
+        } else {
+            alert("Error creating event");
+        }
+    });
+
+    loadEvents();
+});
+
+// Load events for attendance overview
+async function loadEvents() {
+
+    const response = await fetch("http://localhost:5000/events");
+    const events = await response.json();
+
+    const container = document.getElementById("eventList");
+    container.innerHTML = "";
+
+    events.forEach(event => {
+
+        const div = document.createElement("div");
+        div.className = "event-box";
+
+        div.innerHTML = `
+            <b>${event.title}</b><br>
+            Category: ${event.category}<br>
+            <button onclick="viewAttendance(${event.event_id})">
+                View Attendance
+            </button>
+        `;
+
+        container.appendChild(div);
+    });
+}
+async function createAdmin(){
+
+    const name = document.getElementById("adminName").value;
+    const email = document.getElementById("adminEmail").value;
+    const password = document.getElementById("adminPassword").value;
+
+    if(!name || !email || !password){
+        alert("Please fill all fields");
+        return;
+    }
+
+    const response = await fetch("http://localhost:5000/create-admin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password })
+    });
+
+    const data = await response.json();
+
+    if(response.ok){
+        document.getElementById("adminMessage").innerText = data.message;
+    } else {
+        alert("Error creating admin");
+    }
+}
+
+// View attendance summary
+async function viewAttendance(eventId) {
+
+    const response = await fetch(
+        `http://localhost:5000/attendance-summary/${eventId}`
+    );
+
+    const data = await response.json();
+
+    alert(
+        "Total Registrations: " + data.total_registrations +
+        "\nPresent: " + data.total_present +
+        "\nAbsent: " + data.total_absent +
+        "\nAttendance %: " + data.attendance_percentage
+    );
+}
+
+function logout() {
+    localStorage.removeItem("user");
+    window.location.href = "login.html";
+}
+
+function goToScanner() {
+    window.location.href = "admin-scanner.html";
+    
+}
+
+</script>
+
+</body>
+</html>

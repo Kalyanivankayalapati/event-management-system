@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Attendance Verification</title>
+    <style>
+        body {
+            font-family: Arial;
+            text-align: center;
+            background: #f4f6f9;
+        }
+
+        .card {
+            background: white;
+            padding: 40px;
+            width: 400px;
+            margin: 80px auto;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-top: 20px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+
+        button {
+            padding: 12px 20px;
+            margin-top: 20px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 15px;
+        }
+
+        button:hover {
+            background: #1e40af;
+        }
+
+        .result {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+        .back {
+            background: #475569;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Mark Attendance</h2>
+
+    <p>Enter QR Code Value</p>
+
+    <input type="text" id="qrValue" placeholder="Example: 1-3-1772459785011">
+
+    <button onclick="markAttendance()">
+        Mark Attendance
+    </button>
+
+    <div class="result" id="result"></div>
+
+    <button class="back" onclick="window.location.href='admin.html'">
+        Back to Dashboard
+    </button>
+</div>
+
+<script>
+
+function markAttendance() {
+
+    const qrValue = document.getElementById("qrValue").value;
+
+    if (!qrValue) {
+        alert("Please enter QR value.");
+        return;
+    }
+
+    fetch("http://localhost:5000/mark-attendance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ qr_value: qrValue })
+    })
+    .then(res => res.text())
+    .then(data => {
+        document.getElementById("result").innerText = data;
+    })
+    .catch(() => {
+        document.getElementById("result").innerText =
+            "Error marking attendance.";
+    });
+}
+
+</script>
+
+</body>
+</html>
