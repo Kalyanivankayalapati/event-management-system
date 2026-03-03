@@ -141,7 +141,7 @@ async function registerEvent(eventId){
 
     if(!confirmRegister) return;
 
-    const response = await fetch("http://localhost:5000/register-event",{
+    const response = await fetch("/register-event",{
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify({user_id:user.id,event_id:eventId})
