@@ -81,7 +81,7 @@ let allEvents=[];
 
 async function loadEvents(){
     try{
-        const response=await fetch("http://localhost:5000/events");
+        const response=await fetch("/events");
         allEvents=await response.json();
         displayEvents(allEvents);
     }catch(err){

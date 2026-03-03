@@ -189,7 +189,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        const response = await fetch("http://localhost:5000/create-event", {
+        const response = await fetch("/create-event", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ title, description, date, location, category })
@@ -209,7 +209,7 @@ document.addEventListener("DOMContentLoaded", function () {
 // Load events for attendance overview
 async function loadEvents() {
 
-    const response = await fetch("http://localhost:5000/events");
+    const response = await fetch("/events");
     const events = await response.json();
 
     const container = document.getElementById("eventList");
@@ -242,7 +242,7 @@ async function createAdmin(){
         return;
     }
 
-    const response = await fetch("http://localhost:5000/create-admin", {
+    const response = await fetch("/create-admin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password })
@@ -261,7 +261,7 @@ async function createAdmin(){
 async function viewAttendance(eventId) {
 
     const response = await fetch(
-        `http://localhost:5000/attendance-summary/${eventId}`
+        `/attendance-summary/${eventId}`
     );
 
     const data = await response.json();

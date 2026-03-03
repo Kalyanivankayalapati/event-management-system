@@ -84,7 +84,7 @@ function markAttendance() {
         return;
     }
 
-    fetch("http://localhost:5000/mark-attendance", {
+    fetch("/mark-attendance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ qr_value: qrValue })
