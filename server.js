@@ -132,7 +132,7 @@ app.post('/register-event', (req, res) => {
         });
 
         const insertSql = `
-            INSERT INTO registrations (user_id, event_id, qr_code_value)
+            INSERT INTO registrations (user_id, event_id, qr_code)
             VALUES (?, ?, ?)
         `;
 
