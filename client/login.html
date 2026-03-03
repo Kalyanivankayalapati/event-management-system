@@ -206,9 +206,10 @@ async function login() {
         }
 
     } catch (error) {
-        loadingDiv.innerText = "";
-        errorDiv.innerText = "Server not reachable. Make sure backend is running.";
-    }
+    loadingDiv.innerText = "";
+    console.log("REAL ERROR:", error);
+    errorDiv.innerText = error;
+}
 }
 
 </script>
