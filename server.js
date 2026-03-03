@@ -158,7 +158,7 @@ app.post('/mark-attendance', (req, res) => {
 
     const checkSql = `
         SELECT * FROM registrations 
-        WHERE qr_code_value = ?
+        WHERE qr_code = ?
     `;
 
     db.query(checkSql, [qr_value], (err, results) => {
@@ -169,13 +169,13 @@ app.post('/mark-attendance', (req, res) => {
             return res.status(404).send("Invalid QR Code");
         }
 
-        if (results[0].attendance_status === "Present") {
+        if (results[0].attended === 1) {
             return res.send("Attendance Already Marked");
         }
 
         const updateSql = `
             UPDATE registrations 
-            SET attendance_status = 'Present'
+            SET attended = 1
             WHERE qr_code = ?
         `;
 
@@ -214,8 +214,8 @@ app.get('/attendance-summary/:event_id', (req, res) => {
     const sql = `
         SELECT 
             COUNT(*) AS total_registrations,
-            SUM(CASE WHEN attendance_status = 'Present' THEN 1 ELSE 0 END) AS total_present,
-            SUM(CASE WHEN attendance_status = 'Absent' THEN 1 ELSE 0 END) AS total_absent
+            SUM(CASE WHEN attended = 1 THEN 1 ELSE 0 END) AS total_present,
+            SUM(CASE WHEN attended = 0 OR attended IS NULL THEN 1 ELSE 0 END) AS total_absent
         FROM registrations
         WHERE event_id = ?
     `;
@@ -231,15 +231,14 @@ app.get('/attendance-summary/:event_id', (req, res) => {
             : 0;
 
         res.json({
-            total_registrations: data.total_registrations,
-            total_present: data.total_present,
-            total_absent: data.total_absent,
+            total_registrations: data.total_registrations || 0,
+            total_present: data.total_present || 0,
+            total_absent: data.total_absent || 0,
             attendance_percentage: percentage + "%"
         });
 
     });
 });
-
 // ================= SERVER START =================
 const PORT = process.env.PORT || 5000;
 
