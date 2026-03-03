@@ -176,7 +176,7 @@ app.post('/mark-attendance', (req, res) => {
         const updateSql = `
             UPDATE registrations 
             SET attendance_status = 'Present'
-            WHERE qr_code = ?
+            WHERE qr_code_value = ?
         `;
 
         db.query(updateSql, [qr_value], (err) => {
