@@ -58,7 +58,7 @@ app.post('/login', (req, res) => {
     `;
 
     db.query(sql, [email, password], (err, results) => {
-        if (err) return res.status(500).send("Login error");
+       if (err) return res.status(500).json({ message: "Login error" });
 
         if (results.length > 0) {
             res.json({
