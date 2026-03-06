@@ -23,22 +23,30 @@ const pool = new Pool({
 });
 
 
-
-
 // ================= REGISTER USER =================
-app.post('/register', (req, res) => {
+app.post('/register', async (req, res) => {
+
     const { name, email, password } = req.body;
 
-    const sql = `
-        INSERT INTO users (name, email, password, role)
-        VALUES (?, ?, ?, 'user')
-    `;
+    try {
 
-    db.query(sql, [name, email, password], (err) => {
-        if (err) return res.status(500).send("Error registering user");
-        res.send("User Registered Successfully");
-    });
+        await pool.query(
+            `INSERT INTO users (name,email,password,role)
+             VALUES ($1,$2,$3,'user')`,
+            [name,email,password]
+        );
+
+        res.json({ message: "User Registered Successfully" });
+
+    } catch(error) {
+
+        console.log(error);
+        res.status(500).json({ message:"Error registering user" });
+
+    }
+
 });
+
 
 // ================= LOGIN =================
 app.post('/login', async (req, res) => {
@@ -48,201 +56,224 @@ app.post('/login', async (req, res) => {
     try {
 
         const result = await pool.query(
-            "SELECT * FROM users WHERE email = $1 AND password = $2",
-            [email, password]
+            "SELECT * FROM users WHERE email=$1 AND password=$2",
+            [email,password]
         );
 
-        if (result.rows.length > 0) {
+        if(result.rows.length > 0){
 
             res.json({
-                message: "Login Successful",
+                message:"Login Successful",
                 user: result.rows[0]
             });
 
-        } else {
+        }else{
 
             res.status(401).json({
-                message: "Invalid Email or Password"
+                message:"Invalid Email or Password"
             });
 
         }
 
-    } catch (error) {
+    } catch(error){
 
         console.log(error);
-        res.status(500).json({
-    message: "Login error"
-});
+        res.status(500).json({message:"Login error"});
 
     }
 
 });
+
 
 // ================= CREATE EVENT =================
 app.post('/create-event', async (req, res) => {
 
     const { title, description, date, location, category } = req.body;
 
-    try {
+    try{
 
         await pool.query(
-            `INSERT INTO events (title, description, date, location, category)
-             VALUES ($1, $2, $3, $4, $5)`,
-            [title, description, date, location, category]
+            `INSERT INTO events (title,description,date,location,category)
+             VALUES ($1,$2,$3,$4,$5)`,
+            [title,description,date,location,category]
+        );
+
+        res.json({ message:"Event created successfully" });
+
+    }catch(error){
+
+        console.log(error);
+        res.status(500).json({message:"Error creating event"});
+
+    }
+
+});
+
+
+// ================= GET EVENTS =================
+app.get('/events', async (req,res)=>{
+
+    try{
+
+        const result = await pool.query("SELECT * FROM events ORDER BY event_id DESC");
+
+        res.json(result.rows);
+
+    }catch(error){
+
+        console.log(error);
+        res.status(500).json({message:"Error fetching events"});
+
+    }
+
+});
+
+
+// ================= REGISTER FOR EVENT =================
+app.post('/register-event', async (req,res)=>{
+
+    const { user_id, event_id } = req.body;
+
+    try{
+
+        const check = await pool.query(
+            `SELECT * FROM registrations
+             WHERE user_id=$1 AND event_id=$2`,
+            [user_id,event_id]
+        );
+
+        if(check.rows.length>0){
+
+            return res.status(400).json({
+                message:"Already registered"
+            });
+
+        }
+
+        const qrValue = `${user_id}-${event_id}-${Date.now()}`;
+
+        const qrImage = await QRCode.toDataURL(qrValue);
+
+        await pool.query(
+            `INSERT INTO registrations (user_id,event_id,qr_code)
+             VALUES ($1,$2,$3)`,
+            [user_id,event_id,qrValue]
         );
 
         res.json({
-            message: "Event created successfully"
+            message:"Registered Successfully",
+            qr: qrImage,
+            qr_value: qrValue
         });
 
-    } catch (error) {
+    }catch(error){
+
+        console.log(error);
+        res.status(500).json({message:"Error registering"});
+
+    }
+
+});
+
+
+// ================= MARK ATTENDANCE =================
+app.post('/mark-attendance', async (req,res)=>{
+
+    const { qr_value } = req.body;
+
+    try{
+
+        const result = await pool.query(
+            `SELECT * FROM registrations WHERE qr_code=$1`,
+            [qr_value]
+        );
+
+        if(result.rows.length===0){
+
+            return res.status(404).json({
+                message:"Invalid QR Code"
+            });
+
+        }
+
+        if(result.rows[0].attended===1){
+
+            return res.json({
+                message:"Attendance Already Marked"
+            });
+
+        }
+
+        await pool.query(
+            `UPDATE registrations
+             SET attended=1
+             WHERE qr_code=$1`,
+            [qr_value]
+        );
+
+        res.json({
+            message:"Attendance Marked Successfully"
+        });
+
+    }catch(error){
 
         console.log(error);
         res.status(500).json({
-            message: "Error creating event"
+            message:"Error checking QR"
         });
 
     }
 
 });
 
-// ================= GET EVENTS =================
-app.get('/events', (req, res) => {
-    db.query("SELECT * FROM events", (err, results) => {
-        if (err) return res.status(500).send("Error fetching events");
-        res.json(results);
-    });
-});
 
-// ================= REGISTER FOR EVENT + QR =================
-app.post('/register-event', (req, res) => {
-
-    const { user_id, event_id } = req.body;
-
-    const checkSql = `
-        SELECT * FROM registrations 
-        WHERE user_id = ? AND event_id = ?
-    `;
-
-    db.query(checkSql, [user_id, event_id], async (err, results) => {
-
-        if (err) return res.status(500).send("Error checking registration");
-
-        if (results.length > 0) {
-            return res.status(400).json({
-                message: "You are already registered for this event."
-            });
-        }
-
-        const qrValue = `${user_id}-${event_id}-${Date.now()}`;
-
-        const qrImage = await QRCode.toDataURL(qrValue, {
-            width: 400,
-            margin: 2,
-            color: {
-                dark: "#000000",
-                light: "#ffffff"
-            }
-        });
-
-        const insertSql = `
-            INSERT INTO registrations (user_id, event_id, qr_code)
-            VALUES (?, ?, ?)
-        `;
-
-        db.query(insertSql, [user_id, event_id, qrValue], (err) => {
-
-            if (err) return res.status(500).send("Error registering");
-
-            res.json({
-                message: "Registered Successfully",
-                qr: qrImage,
-                qr_value: qrValue   // 👈 IMPORTANT
-            });
-
-        });
-
-    });
-});
-
-// ================= MARK ATTENDANCE =================
-app.post('/mark-attendance', (req, res) => {
-
-    const { qr_value } = req.body;
-
-    const checkSql = `
-        SELECT * FROM registrations 
-        WHERE qr_code = ?
-    `;
-
-    db.query(checkSql, [qr_value], (err, results) => {
-
-        if (err) return res.status(500).send("Error checking QR");
-
-        if (results.length === 0) {
-            return res.status(404).send("Invalid QR Code");
-        }
-
-        if (results[0].attended === 1) {
-            return res.send("Attendance Already Marked");
-        }
-
-        const updateSql = `
-            UPDATE registrations 
-            SET attended = 1
-            WHERE qr_code = ?
-        `;
-
-        db.query(updateSql, [qr_value], (err) => {
-            if (err) return res.status(500).send("Error marking attendance");
-            res.send("Attendance Marked Successfully");
-        });
-
-    });
-});
 // ================= CREATE ADMIN =================
-app.post('/create-admin', (req, res) => {
+app.post('/create-admin', async (req,res)=>{
 
-    const { name, email, password } = req.body;
+    const { name,email,password } = req.body;
 
-    const sql = `
-        INSERT INTO users (name, email, password, role)
-        VALUES (?, ?, ?, 'admin')
-    `;
+    try{
 
-    db.query(sql, [name, email, password], (err) => {
-        if (err) {
-            console.log(err);
-            return res.status(500).json({ message: "Error creating admin" });
-        }
+        await pool.query(
+            `INSERT INTO users (name,email,password,role)
+             VALUES ($1,$2,$3,'admin')`,
+            [name,email,password]
+        );
 
-        res.json({ message: "Admin Created Successfully" });
-    });
+        res.json({message:"Admin Created Successfully"});
+
+    }catch(error){
+
+        console.log(error);
+        res.status(500).json({message:"Error creating admin"});
+
+    }
 
 });
+
+
 // ================= ATTENDANCE SUMMARY =================
-app.get('/attendance-summary/:event_id', (req, res) => {
+app.get('/attendance-summary/:event_id', async (req,res)=>{
 
     const eventId = req.params.event_id;
 
-    const sql = `
-        SELECT 
-            COUNT(*) AS total_registrations,
-            SUM(CASE WHEN attended = 1 THEN 1 ELSE 0 END) AS total_present,
-            SUM(CASE WHEN attended = 0 OR attended IS NULL THEN 1 ELSE 0 END) AS total_absent
-        FROM registrations
-        WHERE event_id = ?
-    `;
+    try{
 
-    db.query(sql, [eventId], (err, results) => {
+        const result = await pool.query(
+            `SELECT 
+                COUNT(*) AS total_registrations,
+                SUM(CASE WHEN attended=1 THEN 1 ELSE 0 END) AS total_present,
+                SUM(CASE WHEN attended=0 OR attended IS NULL THEN 1 ELSE 0 END) AS total_absent
+             FROM registrations
+             WHERE event_id=$1`,
+            [eventId]
+        );
 
-        if (err) return res.status(500).send("Error fetching attendance");
+        const data = result.rows[0];
 
-        const data = results[0];
-
-        const percentage = data.total_registrations > 0
-            ? ((data.total_present / data.total_registrations) * 100).toFixed(2)
-            : 0;
+        const percentage = data.total_registrations>0
+        ? ((data.total_present/data.total_registrations)*100).toFixed(2)
+        : 0;
 
         res.json({
             total_registrations: data.total_registrations || 0,
@@ -251,11 +282,19 @@ app.get('/attendance-summary/:event_id', (req, res) => {
             attendance_percentage: percentage + "%"
         });
 
-    });
+    }catch(error){
+
+        console.log(error);
+        res.status(500).json({message:"Error fetching attendance"});
+
+    }
+
 });
+
+
 // ================= SERVER START =================
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-    console.log("Server running on port " + PORT);
+app.listen(PORT,()=>{
+    console.log("Server running on port "+PORT);
 });
