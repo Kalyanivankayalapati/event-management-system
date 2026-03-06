@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const mysql = require('mysql2');
+const { Pool } = require('pg');
 const cors = require('cors');
 const QRCode = require('qrcode');
 const path = require("path");
@@ -15,21 +15,13 @@ app.get("/", (req, res) => {
 });
 
 // ================= DATABASE CONNECTION =================
-const db = mysql.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    port: process.env.PORT   // ✅ ADD THIS LINE
-});
-
-db.connect(err => {
-    if (err) {
-        console.log("Database connection failed:", err);
-    } else {
-        console.log("Connected to MySQL Database!");
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+        rejectUnauthorized: false
     }
 });
+
 
 
 
@@ -49,28 +41,39 @@ app.post('/register', (req, res) => {
 });
 
 // ================= LOGIN =================
-app.post('/login', (req, res) => {
+app.post('/login', async (req, res) => {
+
     const { email, password } = req.body;
 
-    const sql = `
-        SELECT * FROM users 
-        WHERE email = ? AND password = ?
-    `;
+    try {
 
-    db.query(sql, [email, password], (err, results) => {
-       if (err) return res.status(500).json({ message: "Login error" });
+        const result = await pool.query(
+            "SELECT * FROM users WHERE email = $1 AND password = $2",
+            [email, password]
+        );
 
-        if (results.length > 0) {
+        if (result.rows.length > 0) {
+
             res.json({
                 message: "Login Successful",
-                user: results[0]
+                user: result.rows[0]
             });
+
         } else {
+
             res.status(401).json({
                 message: "Invalid Email or Password"
             });
+
         }
-    });
+
+    } catch (error) {
+
+        console.log(error);
+        res.status(500).send("Login error");
+
+    }
+
 });
 
 // ================= CREATE EVENT =================
