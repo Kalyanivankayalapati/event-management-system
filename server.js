@@ -79,22 +79,31 @@ app.post('/login', async (req, res) => {
 });
 
 // ================= CREATE EVENT =================
-app.post('/create-event', (req, res) => {
+app.post('/create-event', async (req, res) => {
+
     const { title, description, date, location, category } = req.body;
 
-    const sql = `
-        INSERT INTO events (title, description, date, location, category)
-        VALUES (?, ?, ?, ?, ?)
-    `;
+    try {
 
-    db.query(sql, [title, description, date, location, category], (err) => {
-        if (err) {
-            console.log(err);
-            return res.status(500).send("Error creating event");
-        }
+        await pool.query(
+            `INSERT INTO events (title, description, date, location, category)
+             VALUES ($1, $2, $3, $4, $5)`,
+            [title, description, date, location, category]
+        );
 
-        res.json({ message: "Event Created Successfully" });
-    });
+        res.json({
+            message: "Event created successfully"
+        });
+
+    } catch (error) {
+
+        console.log(error);
+        res.status(500).json({
+            message: "Error creating event"
+        });
+
+    }
+
 });
 
 // ================= GET EVENTS =================
