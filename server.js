@@ -70,7 +70,9 @@ app.post('/login', async (req, res) => {
     } catch (error) {
 
         console.log(error);
-        res.status(500).send("Login error");
+        res.status(500).json({
+    message: "Login error"
+});
 
     }
 
