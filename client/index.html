@@ -1,94 +1,245 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Campus Event Management System</title>
+<title>Campus Event Management</title>
 
 <style>
 
-body{
-    margin:0;
-    font-family:Segoe UI;
-    background:#f1f5f9;
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Segoe UI;
 }
+
+body{
+background:#f4f7fb;
+animation:fadein 1s ease;
+}
+
+@keyframes fadein{
+from{opacity:0}
+to{opacity:1}
+}
+
+/* NAVBAR */
+
+.navbar{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:18px 60px;
+background:white;
+box-shadow:0 4px 15px rgba(0,0,0,0.08);
+}
+
+.logo{
+font-size:22px;
+font-weight:700;
+color:#2563eb;
+}
+
+.nav-links a{
+margin-left:30px;
+text-decoration:none;
+color:#333;
+font-weight:500;
+transition:0.3s;
+}
+
+.nav-links a:hover{
+color:#2563eb;
+}
+
+.login-btn{
+background:#2563eb;
+color:white;
+padding:10px 18px;
+border-radius:6px;
+text-decoration:none;
+transition:0.3s;
+}
+
+.login-btn:hover{
+background:#1e4ed8;
+}
+
+/* HERO */
 
 .hero{
-    background:linear-gradient(135deg,#2563eb,#1e40af);
-    color:white;
-    text-align:center;
-    padding:120px 20px;
+height:90vh;
+display:flex;
+align-items:center;
+padding-left:80px;
+
+background:
+linear-gradient(rgba(15,23,42,0.85),rgba(15,23,42,0.85)),
+url("https://images.unsplash.com/photo-1492684223066-81342ee5ff30");
+
+background-size:cover;
+background-position:center;
+
+color:white;
 }
 
-.hero h1{
-    font-size:42px;
-    margin-bottom:10px;
+.hero-text{
+max-width:520px;
 }
 
-.hero p{
-    font-size:18px;
+.hero-text h1{
+font-size:50px;
+margin-bottom:15px;
+line-height:1.2;
 }
 
-.btn{
-    margin-top:25px;
-    padding:14px 30px;
-    background:white;
-    color:#2563eb;
-    border:none;
-    font-size:16px;
-    border-radius:8px;
-    cursor:pointer;
-    font-weight:600;
+.hero-text p{
+font-size:18px;
+margin-bottom:25px;
+opacity:0.9;
 }
+
+.hero-btn{
+background:#2563eb;
+color:white;
+padding:14px 28px;
+border-radius:8px;
+text-decoration:none;
+font-size:16px;
+font-weight:600;
+transition:0.3s;
+}
+
+.hero-btn:hover{
+background:#1e4ed8;
+transform:translateY(-2px);
+}
+
+/* FEATURES */
 
 .features{
-    padding:60px 20px;
-    text-align:center;
+padding:80px 60px;
+text-align:center;
+background:white;
+}
+
+.features h2{
+font-size:34px;
+margin-bottom:40px;
+}
+
+.feature-grid{
+display:flex;
+justify-content:center;
+gap:30px;
+flex-wrap:wrap;
 }
 
 .card{
-    display:inline-block;
-    width:260px;
-    background:white;
-    padding:25px;
-    margin:15px;
-    border-radius:12px;
-    box-shadow:0 6px 20px rgba(0,0,0,0.08);
+background:#f8fafc;
+width:260px;
+padding:30px;
+border-radius:12px;
+box-shadow:0 6px 20px rgba(0,0,0,0.08);
+transition:all 0.3s ease;
+cursor:pointer;
+}
+
+.card:hover{
+transform:translateY(-10px);
+box-shadow:0 15px 35px rgba(0,0,0,0.15);
+}
+
+.card h3{
+margin-bottom:10px;
+}
+
+/* FOOTER */
+
+.footer{
+text-align:center;
+padding:25px;
+background:#0f172a;
+color:white;
+margin-top:40px;
 }
 
 </style>
+
 </head>
 
 <body>
 
-<div class="hero">
+<!-- NAVBAR -->
 
-<h1>Campus Event Management System</h1>
+<div class="navbar">
 
-<p>Register for college events and track attendance using QR codes</p>
+<div class="logo">EventHub</div>
 
-<button class="btn" onclick="window.location.href='login.html'">
-Login / Register
-</button>
+<div class="nav-links">
+<a href="#">Features</a>
+<a href="#">Events</a>
+<a href="#">Contact</a>
+<a class="login-btn" href="login.html">Login</a>
+</div>
 
 </div>
+
+<!-- HERO SECTION -->
+
+<div class="hero">
+
+<div class="hero-text">
+
+<h1>A better way to manage your college events</h1>
+
+<p>
+Create events, register participants and track attendance using QR technology.
+</p>
+
+<a class="hero-btn" href="login.html">Get Started</a>
+
+</div>
+
+</div>
+
+<!-- FEATURES -->
 
 <div class="features">
 
+<h2>Powerful Event Management</h2>
+
+<div class="feature-grid">
+
 <div class="card">
-<h3>Event Registration</h3>
-<p>Students can register for technical and non-technical events easily.</p>
+<h3>Event Creation</h3>
+<p>Create and manage college events easily from the admin dashboard.</p>
 </div>
 
 <div class="card">
-<h3>QR Attendance</h3>
+<h3>QR Registration</h3>
+<p>Participants receive QR codes for quick check-in.</p>
+</div>
+
+<div class="card">
+<h3>Attendance Tracking</h3>
 <p>Admins scan QR codes to mark attendance instantly.</p>
 </div>
 
 <div class="card">
-<h3>Admin Dashboard</h3>
-<p>Admins manage events, registrations and attendance records.</p>
+<h3>Analytics</h3>
+<p>View attendance summaries and event participation insights.</p>
 </div>
 
+</div>
+
+</div>
+
+<!-- FOOTER -->
+
+<div class="footer">
+© 2026 EventHub | Campus Event Management System
 </div>
 
 </body>
+
 </html>

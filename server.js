@@ -5,6 +5,7 @@ const cors = require('cors');
 const QRCode = require('qrcode');
 const path = require("path");
 
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -21,6 +22,7 @@ const pool = new Pool({
         rejectUnauthorized: false
     }
 });
+
 
 
 // ================= REGISTER USER =================
@@ -159,6 +161,7 @@ app.post('/register-event', async (req,res)=>{
              VALUES ($1,$2,$3)`,
             [user_id,event_id,qrValue]
         );
+        
 
         res.json({
             message:"Registered Successfully",
@@ -287,6 +290,67 @@ app.get('/attendance-summary/:event_id', async (req,res)=>{
 
 });
 
+app.post('/verify-participant', async (req,res)=>{
+
+const {qr_value}=req.body;
+
+try{
+
+const result=await pool.query(
+
+`SELECT users.name, users.email, events.title
+FROM registrations
+JOIN users ON registrations.user_id = users.id
+JOIN events ON registrations.event_id = events.event_id
+WHERE registrations.qr_code = $1`
+
+,[qr_value]);
+
+if(result.rows.length===0){
+
+return res.status(404).send("Invalid QR");
+
+}
+
+res.json(result.rows[0]);
+
+}
+
+catch(err){
+
+console.log(err);
+res.status(500).send("Server error");
+
+}
+
+});
+
+// ================= USER REGISTRATIONS =================
+app.get('/my-registrations/:user_id', async (req,res)=>{
+
+const userId = req.params.user_id;
+
+try{
+
+const result = await pool.query(
+
+`SELECT events.title, events.date, events.location, registrations.qr_code
+FROM registrations
+JOIN events ON registrations.event_id = events.event_id
+WHERE registrations.user_id = $1`
+
+,[userId]);
+
+res.json(result.rows);
+
+}catch(error){
+
+console.log(error);
+res.status(500).json({message:"Error fetching registrations"});
+
+}
+
+});
 
 // ================= SERVER START =================
 const PORT = process.env.PORT || 5000;

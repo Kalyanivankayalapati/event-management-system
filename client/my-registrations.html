@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>My Registrations</title>
+
+<style>
+
+body{
+font-family:Segoe UI;
+background:#f4f7fb;
+margin:0;
+padding:40px;
+}
+
+h2{
+text-align:center;
+}
+
+.container{
+max-width:800px;
+margin:auto;
+}
+
+.card{
+background:white;
+padding:20px;
+margin:20px 0;
+border-radius:10px;
+box-shadow:0 5px 15px rgba(0,0,0,0.1);
+}
+
+button{
+background:#2563eb;
+color:white;
+border:none;
+padding:10px 15px;
+border-radius:6px;
+cursor:pointer;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h2>My Event Registrations</h2>
+
+<div class="container" id="events"></div>
+
+<script>
+
+const user = JSON.parse(localStorage.getItem("user"));
+
+async function loadRegistrations(){
+
+const res = await fetch(`/my-registrations/${user.id}`);
+
+const data = await res.json();
+
+const container = document.getElementById("events");
+
+container.innerHTML="";
+
+data.forEach(event=>{
+
+container.innerHTML += `
+
+<div class="card">
+
+<h3>${event.title}</h3>
+
+<p><b>Date:</b> ${event.date}</p>
+
+<p><b>Location:</b> ${event.location}</p>
+
+<p><b>QR Code:</b> ${event.qr_code}</p>
+
+</div>
+
+`;
+
+});
+
+}
+
+loadRegistrations();
+
+</script>
+
+</body>
+</html>

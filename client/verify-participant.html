@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Verify Participant</title>
+
+<style>
+
+body{
+font-family:Segoe UI;
+background:#f4f7fb;
+text-align:center;
+padding:40px;
+}
+
+.container{
+background:white;
+padding:40px;
+width:400px;
+margin:auto;
+border-radius:10px;
+box-shadow:0 10px 25px rgba(0,0,0,0.1);
+}
+
+input{
+width:100%;
+padding:12px;
+margin:10px 0;
+border-radius:6px;
+border:1px solid #ccc;
+}
+
+button{
+padding:12px 20px;
+background:#2563eb;
+color:white;
+border:none;
+border-radius:6px;
+cursor:pointer;
+margin-top:10px;
+}
+
+.details{
+margin-top:20px;
+text-align:left;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Verify Participant</h2>
+
+<input type="text" id="qr" placeholder="Enter QR Code">
+
+<button onclick="verify()">Verify Participant</button>
+
+<div class="details" id="details"></div>
+
+<button id="markBtn" style="display:none" onclick="markAttendance()">
+Mark Attendance
+</button>
+
+</div>
+
+<script>
+
+let qrValue="";
+
+async function verify(){
+
+qrValue=document.getElementById("qr").value;
+
+const res=await fetch("/verify-participant",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({qr_value:qrValue})
+});
+
+const data=await res.json();
+
+document.getElementById("details").innerHTML=`
+
+<p><b>Name:</b> ${data.name}</p>
+<p><b>Email:</b> ${data.email}</p>
+<p><b>Event:</b> ${data.title}</p>
+
+`;
+
+document.getElementById("markBtn").style.display="block";
+
+}
+
+async function markAttendance(){
+
+const res=await fetch("/mark-attendance",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({qr_value:qrValue})
+});
+
+alert("Attendance Marked");
+
+}
+
+</script>
+
+</body>
+</html>
