@@ -198,9 +198,7 @@ app.post('/mark-attendance', async (req,res)=>{
 
         if(result.rows[0].attended===1){
 
-            return res.json({
-                message:"Attendance Already Marked"
-            });
+            return res.send("Attendance Already Marked");
 
         }
 
@@ -211,9 +209,7 @@ app.post('/mark-attendance', async (req,res)=>{
             [qr_value]
         );
 
-        res.json({
-            message:"Attendance Marked Successfully"
-        });
+        res.send("Attendance Marked Successfully");
 
     }catch(error){
 
