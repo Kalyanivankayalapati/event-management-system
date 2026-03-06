@@ -55,12 +55,11 @@ text-align:left;
 
 <h2>Verify Participant</h2>
 
-<input type="text" id="qr" placeholder="Enter QR Code">
+<input type="text" id="qr_value" placeholder="Enter QR Code">
 
-<button onclick="verify()">Verify Participant</button>
+<button onclick="verifyParticipant()">Verify Participant</button>
 
-<div class="details" id="details"></div>
-
+<div id="result"></div>
 <button id="markBtn" style="display:none" onclick="markAttendance()">
 Mark Attendance
 </button>
@@ -71,9 +70,9 @@ Mark Attendance
 
 let qrValue="";
 
-async function verify(){
+async function verifyParticipant(){
 
-qrValue=document.getElementById("qr").value;
+qrValue=document.getElementById("qr_value").value;
 
 const res=await fetch("/verify-participant",{
 method:"POST",
@@ -83,7 +82,7 @@ body:JSON.stringify({qr_value:qrValue})
 
 const data=await res.json();
 
-document.getElementById("details").innerHTML=`
+document.getElementById("result").innerHTML=`
 
 <p><b>Name:</b> ${data.name}</p>
 <p><b>Email:</b> ${data.email}</p>
@@ -97,13 +96,13 @@ document.getElementById("markBtn").style.display="block";
 
 async function markAttendance(){
 
-const res=await fetch("/mark-attendance",{
+await fetch("/mark-attendance",{
 method:"POST",
 headers:{"Content-Type":"application/json"},
 body:JSON.stringify({qr_value:qrValue})
 });
 
-alert("Attendance Marked");
+alert("Attendance Marked Successfully");
 
 }
 
